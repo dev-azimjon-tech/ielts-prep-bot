@@ -2,11 +2,13 @@ import telebot
 from dotenv import load_dotenv
 import os
 import logging
+from telebot import types
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 load_dotenv()
+
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 if not TOKEN:
@@ -16,8 +18,37 @@ if not TOKEN:
 bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(commands=['start'])
-def send_welcome(message):
-    bot.reply_to(message, "Welcome to the IELTS Prep Bot! Use /help to see available commands.")
+def register_user(message):
+    markup_main = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    markup_main.add(
+        types.KeyboardButton("Browse Free IELTS Books"),
+        types.KeyboardButton("Start Practice Session"),
+        types.KeyboardButton("View Free Resources"),
+        types.KeyboardButton("Get Free Consultation"),
+        types.KeyboardButton("Contact Support"),
+        types.KeyboardButton("Premium Subscription")
+    )
+
+    bot.reply_to(message, "Welcome to the IELTS Prep Bot! Use /help to see available commands.", reply_markup=markup_main)
+
+
+@bot.message_handler(func=lambda message: message.text == "Browse Free IELTS Books")
+def browse_books(message):
+    markup_books = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    markup_books.add(
+        types.KeyboardButton("Book 1"),
+        types.KeyboardButton("Book 2"),
+        types.KeyboardButton("Book 3"),
+        types.KeyboardButton("Book 4")
+    )
+    bot.send_message(message.chat.id, "Choose the book you want: ", reply_markup=markup_books)
+
+
+# Add /books command handler to trigger browse_books
+@bot.message_handler(commands=['books'])
+def books_command(message):
+    browse_books(message)
+
 
 @bot.message_handler(commands=['help'])
 def send_help(message):
