@@ -3,12 +3,37 @@ from dotenv import load_dotenv
 import os
 import logging
 from telebot import types
+import json
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 load_dotenv()
 
+USERS_FILE = "users.json"
+BOOKS_FILE = "books.json"
+
+
+if os.path.exists(USERS_FILE):
+    with open(USERS_FILE, "r") as f:
+        users = json.load(f)
+else:
+    users = {}
+
+def save_users():
+    with open(USERS_FILE, "w") as f:
+        json.dump(users, f, indent=2)
+
+if os.path.exists(BOOKS_FILE):
+    with open(BOOKS_FILE, "r") as f:
+        books = json.load(f)
+else:
+    books = {}
+
+def save_books():
+    with open(BOOKS_FILE, "w") as f:
+        json.dump(books, f, indent=2)
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 if not TOKEN:
@@ -35,16 +60,11 @@ def register_user(message):
 @bot.message_handler(func=lambda message: message.text == "Browse Free IELTS Books")
 def browse_books(message):
     markup_books = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-    markup_books.add(
-        types.KeyboardButton("Book 1"),
-        types.KeyboardButton("Book 2"),
-        types.KeyboardButton("Book 3"),
-        types.KeyboardButton("Book 4")
-    )
+    buttons = [types.KeyboardButton(book['name']) for book in books]
+    markup_books.add(*buttons)
     bot.send_message(message.chat.id, "Choose the book you want: ", reply_markup=markup_books)
 
 
-# Add /books command handler to trigger browse_books
 @bot.message_handler(commands=['books'])
 def books_command(message):
     browse_books(message)
